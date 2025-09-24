@@ -1,0 +1,840 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生活ログ・リアルタイム予定メモ モック</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --sidebar: #eef2ff;
+      --dock: #f8fafc;
+      --accent: #2563eb;
+      --border: #d6dce8;
+      --text: #1f2933;
+      --muted: #6b7280;
+      --sleep: #6366f1;
+      --meal: #f97316;
+      --hobby: #10b981;
+      --outing: #ec4899;
+      --hp: #ef4444;
+      --mp: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+    .app-shell {
+      width: min(1240px, 96vw);
+      height: min(800px, 94vh);
+      box-shadow: 0 22px 48px rgba(15, 23, 42, 0.18);
+      border-radius: 22px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 84px 1fr 46px;
+      background: var(--surface);
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 28px;
+      background: linear-gradient(135deg, #1d4ed8, #60a5fa);
+      color: #fff;
+    }
+    header .brand {
+      font-size: 22px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    header .brand span {
+      font-size: 13px;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+    header .sync {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header .quick-log {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 160px 140px 100px 100px 1fr 140px;
+      gap: 12px;
+      margin-left: 20px;
+      align-items: end;
+    }
+    header select,
+    header input,
+    header button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+    header select,
+    header input {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+    header input::placeholder {
+      color: rgba(255,255,255,0.7);
+    }
+    .quick-log .field {
+      display: grid;
+      gap: 6px;
+    }
+    .quick-log .field.compact {
+      gap: 4px;
+    }
+    .quick-log label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+    }
+    .quick-log .time-field {
+      gap: 6px;
+    }
+    .quick-log input[type="time"],
+    .quick-log input[type="number"] {
+      padding: 10px 12px;
+    }
+    .quick-log input[type="number"] {
+      appearance: textfield;
+      -moz-appearance: textfield;
+      text-align: center;
+    }
+    .quick-log input[type="number"]::-webkit-outer-spin-button,
+    .quick-log input[type="number"]::-webkit-inner-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+    header button {
+      background: rgba(255,255,255,0.24);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 250px 1fr 260px;
+      min-height: 0;
+    }
+    aside.left {
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      padding: 26px 20px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 26px;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .date-picker {
+      background: rgba(255,255,255,0.7);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: grid;
+      gap: 10px;
+      border: 1px solid rgba(37,99,235,0.2);
+    }
+    .date-picker .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .agenda-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .agenda-header button {
+      border: none;
+      background: rgba(37,99,235,0.18);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .day-agenda {
+      display: grid;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .day-agenda .event {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(37,99,235,0.08);
+      border: 1px solid rgba(37,99,235,0.12);
+    }
+    .day-agenda .event .time {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 13px;
+    }
+    .day-agenda .event .label {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .day-agenda .event.is-next {
+      background: rgba(37,99,235,0.18);
+      border-color: rgba(37,99,235,0.34);
+    }
+    .quick-categories {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px;
+    }
+    .quick-categories button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 0;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(37,99,235,0.12);
+    }
+    .quick-categories button[data-type="sleep"] { color: var(--sleep); }
+    .quick-categories button[data-type="meal"] { color: var(--meal); }
+    .quick-categories button[data-type="hobby"] { color: var(--hobby); }
+    .quick-categories button[data-type="outing"] { color: var(--outing); }
+    .tag-list {
+      display: grid;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .tag-list span {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.6);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    main {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      background: var(--surface);
+    }
+    .daily-highlight {
+      padding: 22px 28px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(37,99,235,0.05);
+      display: grid;
+      gap: 16px;
+    }
+    .highlight-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .highlight-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px;
+    }
+    .summary-card {
+      border-radius: 16px;
+      padding: 14px;
+      background: #fff;
+      border: 1px solid rgba(37,99,235,0.14);
+      display: grid;
+      gap: 6px;
+    }
+    .summary-card h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .summary-card .value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .summary-card[data-type="sleep"] { border-color: rgba(99,102,241,0.3); }
+    .summary-card[data-type="meal"] { border-color: rgba(249,115,22,0.3); }
+    .summary-card[data-type="hobby"] { border-color: rgba(16,185,129,0.3); }
+    .summary-card[data-type="outing"] { border-color: rgba(236,72,153,0.3); }
+    .timeline-log {
+      padding: 20px 28px 26px;
+      display: grid;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    .timeline-log details {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(249,250,251,0.8);
+      padding: 0 16px;
+      position: relative;
+    }
+    .timeline-log details[open] {
+      background: #fff;
+      border-color: rgba(37,99,235,0.35);
+      box-shadow: 0 12px 24px rgba(15,23,42,0.12);
+    }
+    .timeline-log details::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      border-radius: 14px 0 0 14px;
+      background: rgba(37,99,235,0.12);
+    }
+    .timeline-log details[data-type="sleep"]::after { background: var(--sleep); }
+    .timeline-log details[data-type="meal"]::after { background: var(--meal); }
+    .timeline-log details[data-type="hobby"]::after { background: var(--hobby); }
+    .timeline-log details[data-type="outing"]::after { background: var(--outing); }
+    .timeline-log summary {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 120px 1fr auto auto;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .timeline-log summary .edit-btn {
+      background: rgba(37,99,235,0.16);
+      color: var(--accent);
+      border: none;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .timeline-log summary .edit-btn:hover {
+      background: rgba(37,99,235,0.28);
+      color: #fff;
+    }
+    .timeline-log summary::-webkit-details-marker { display: none; }
+    .timeline-log summary .time {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .timeline-log summary .title {
+      font-size: 15px;
+    }
+    .timeline-log summary .hint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .timeline-log summary .chevron {
+      font-size: 18px;
+      color: rgba(37,99,235,0.7);
+      transform: rotate(0deg);
+      transition: transform 0.2s ease;
+    }
+    .timeline-log details[open] summary .chevron {
+      transform: rotate(90deg);
+    }
+    .entry-detail {
+      padding: 0 0 16px 0;
+      display: grid;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .entry-detail p {
+      margin: 0;
+      line-height: 1.6;
+    }
+    .entry-detail .tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .entry-detail .tags span {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(37,99,235,0.12);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    aside.right {
+      background: var(--dock);
+      border-left: 1px solid var(--border);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+    .dock-section {
+      padding: 22px;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      gap: 14px;
+    }
+    .dock-section:last-child {
+      border-bottom: none;
+    }
+    .hpmp-status {
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(37,99,235,0.18);
+      border-radius: 16px;
+      padding: 18px 20px 20px;
+      display: grid;
+      gap: 16px;
+    }
+    .hpmp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .hpmp-header .subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      display: block;
+    }
+    .hpmp-legend {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .hpmp-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hpmp-legend span::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .hpmp-legend .hp {
+      color: var(--hp);
+    }
+    .hpmp-legend .mp {
+      color: var(--mp);
+    }
+    .hpmp-chart {
+      display: grid;
+      gap: 10px;
+    }
+    .hpmp-chart svg {
+      width: 100%;
+      height: 120px;
+    }
+    .hpmp-chart .grid-line {
+      stroke: rgba(15,23,42,0.08);
+      stroke-width: 1;
+    }
+    .hpmp-chart .hp {
+      fill: none;
+      stroke: var(--hp);
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .hpmp-chart .mp {
+      fill: none;
+      stroke: var(--mp);
+      stroke-width: 2.6;
+      stroke-dasharray: 4 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .hpmp-chart .baseline {
+      stroke: rgba(15,23,42,0.12);
+      stroke-width: 1.2;
+      stroke-dasharray: 2 10;
+    }
+    .hpmp-chart .time-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .hpmp-stats {
+      display: grid;
+      gap: 8px;
+    }
+    .hpmp-stats .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(37,99,235,0.08);
+      color: var(--text);
+      font-size: 13px;
+    }
+    .hpmp-stats .stat span.label {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .hpmp-stats .stat span.value {
+      font-weight: 600;
+    }
+    .hpmp-stats .stat.hp {
+      background: rgba(239,68,68,0.12);
+    }
+    .hpmp-stats .stat.hp span.value {
+      color: var(--hp);
+    }
+    .hpmp-stats .stat.mp {
+      background: rgba(59,130,246,0.12);
+    }
+    .hpmp-stats .stat.mp span.value {
+      color: var(--mp);
+    }
+    .memo-section {
+      padding: 60px 22px 26px;
+      border-top: none;
+      display: grid;
+      gap: 20px;
+      align-content: start;
+    }
+    .memo-section .section-title {
+      margin: 0;
+    }
+    .quick-note {
+      width: 100%;
+      min-height: 180px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 16px;
+      background: #fff;
+      resize: none;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 0 26px;
+      background: rgba(15,23,42,0.03);
+    }
+    footer .footer-summary {
+      margin: 0 auto;
+      max-width: 720px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      font-size: 13px;
+      padding: 12px 0;
+    }
+    footer .footer-summary span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="brand">
+        Lifelog Planner
+        <span>今日の行動を記録して生活習慣を見直すツール</span>
+      </div>
+      <div class="quick-log">
+        <div class="field">
+          <label>カテゴリ</label>
+          <select>
+            <option>カテゴリ選択</option>
+            <option>睡眠</option>
+            <option>食事</option>
+            <option>趣味</option>
+            <option>外出</option>
+            <option>ワーク</option>
+            <option>移動</option>
+          </select>
+        </div>
+        <div class="field time-field">
+          <label>開始時刻</label>
+          <input type="time" value="07:00" />
+        </div>
+        <div class="field compact">
+          <label>HP</label>
+          <input type="number" value="72" min="0" max="100" />
+        </div>
+        <div class="field compact">
+          <label>MP</label>
+          <input type="number" value="63" min="0" max="100" />
+        </div>
+        <div class="field">
+          <label>詳細</label>
+          <input type="text" placeholder="内容やメモを入力" />
+        </div>
+        <button>ログ追加</button>
+      </div>
+      <div class="sync">
+        <span>クラウド同期済み</span>
+        <span>設定</span>
+      </div>
+    </header>
+    <div class="layout">
+      <aside class="left">
+        <div>
+          <div class="section-title">Today</div>
+          <div class="date-picker">
+            <div class="header">
+              <span>2025年5月2日 (金)</span>
+              <span>◀ ▶</span>
+            </div>
+            <div class="agenda-header">
+              <span>今日の予定</span>
+              <button type="button">＋ 予定追加</button>
+            </div>
+            <div class="day-agenda">
+              <div class="event is-next">
+                <span class="time">09:30</span>
+                <span class="label">病院</span>
+              </div>
+              <div class="event">
+                <span class="time">12:30</span>
+                <span class="label">外出</span>
+              </div>
+              <div class="event">
+                <span class="time">18:00</span>
+                <span class="label">ウォーキング</span>
+              </div>
+              <div class="event">
+                <span class="time">21:00</span>
+                <span class="label">コミュニティ</span>
+              </div>
+            </div>
+            <div class="section-title">Favorite Tags</div>
+            <div class="tag-list">
+            <span>🌙 睡眠衛生</span>
+            <span>🍎 ヘルシー</span>
+            <span>💪 運動</span>
+            <span>🧘 リラックス</span>
+          </div>
+        </div>
+      </aside>
+      <main>
+        <section class="daily-highlight">
+          <div class="highlight-header">
+            <h2>今日のハイライト</h2>
+            <span style="color: var(--muted); font-size: 13px;">最終更新: 07:20 / 自動集計</span>
+          </div>
+          <div class="summary-cards">
+            <div class="summary-card" data-type="sleep">
+              <h3>睡眠</h3>
+              <div class="value">7.5 h</div>
+            </div>
+            <div class="summary-card" data-type="meal">
+              <h3>食事</h3>
+              <div class="value">1 回</div>
+            </div>
+            <div class="summary-card" data-type="hobby">
+              <h3>趣味</h3>
+              <div class="value">1.0 h</div>
+            </div>
+            <div class="summary-card" data-type="outing">
+              <h3>外出</h3>
+              <div class="value">0.7 h</div>
+            </div>
+          </div>
+        </section>
+        <section class="timeline-log">
+          <div class="section-title" style="margin-bottom:0;">Timeline</div>
+          <details class="timeline-entry" data-type="sleep">
+            <summary>
+              <span class="time">23:45 - 07:15</span>
+              <span class="title">睡眠</span>
+              <button type="button" class="edit-btn">編集</button>
+              <span class="chevron">›</span>
+            </summary>
+            <div class="entry-detail">
+              <p>スマホ閲覧を早めに切り上げて就寝。夜中の覚醒なしでスッキリ起床。</p>
+              <div class="tags">
+                <span>🌙 睡眠衛生</span>
+                <span>😌 良好</span>
+              </div>
+            </div>
+          </details>
+          <details class="timeline-entry" data-type="meal">
+            <summary>
+              <span class="time">07:15 - 07:35</span>
+              <span class="title">朝食</span>
+              <button type="button" class="edit-btn">編集</button>
+              <span class="chevron">›</span>
+            </summary>
+            <div class="entry-detail">
+              <p>オートミールとヨーグルト、コーヒー。20分ゆっくり味わった。</p>
+              <div class="tags">
+                <span>🍎 ヘルシー</span>
+                <span>☕ カフェイン</span>
+              </div>
+            </div>
+          </details>
+          <details class="timeline-entry" data-type="hobby">
+            <summary>
+              <span class="time">09:00 - 10:00</span>
+              <span class="title">ガーデニング</span>
+              <button type="button" class="edit-btn">編集</button>
+              <span class="chevron">›</span>
+            </summary>
+            <div class="entry-detail">
+              <p>ハーブの剪定と水やり。朝の空気で気分リフレッシュ。</p>
+              <div class="tags">
+                <span>🌿 屋外</span>
+                <span>🧘 リラックス</span>
+              </div>
+            </div>
+          </details>
+          <details class="timeline-entry" data-type="meal">
+            <summary>
+              <span class="time">12:05 - 12:35</span>
+              <span class="title">昼食</span>
+              <button type="button" class="edit-btn">編集</button>
+              <span class="chevron">›</span>
+            </summary>
+            <div class="entry-detail">
+              <p>自炊パスタとサラダ。午後の予定に備えて少し軽め。</p>
+              <div class="tags">
+                <span>🍝 おうちごはん</span>
+              </div>
+            </div>
+          </details>
+          <details class="timeline-entry" data-type="outing">
+            <summary>
+              <span class="time">15:30 - 16:10</span>
+              <span class="title">外出: スーパー</span>
+              <button type="button" class="edit-btn">編集</button>
+              <span class="chevron">›</span>
+            </summary>
+            <div class="entry-detail">
+              <p>夕食用の食材と日用品を購入。徒歩で往復。</p>
+              <div class="tags">
+                <span>🚶‍♀️ 軽い運動</span>
+                <span>🛒 必需品</span>
+              </div>
+            </div>
+          </details>
+        </section>
+      </main>
+      <aside class="right">
+        <div class="dock-section">
+          <div class="section-title" style="margin:0;">カテゴリ別サマリ</div>
+          <div class="hpmp-status">
+            <div class="hpmp-header">
+              <div>
+                <div class="section-title" style="margin:0;">HP / MP ステータス</div>
+                <span class="subtitle">2025年5月2日の推移</span>
+              </div>
+              <div class="hpmp-legend">
+                <span class="hp">HP</span>
+                <span class="mp">MP</span>
+              </div>
+            </div>
+            <div class="hpmp-chart">
+              <svg viewBox="0 0 260 120" preserveAspectRatio="none" role="img" aria-label="1日のHPとMP推移">
+                <line class="grid-line" x1="0" y1="24" x2="260" y2="24" />
+                <line class="grid-line" x1="0" y1="60" x2="260" y2="60" />
+                <line class="grid-line" x1="0" y1="96" x2="260" y2="96" />
+                <line class="baseline" x1="0" y1="100" x2="260" y2="100" />
+                <polyline class="hp" points="0,92 40,80 80,68 120,66 160,54 200,60 240,52 260,48" />
+                <polyline class="mp" points="0,74 40,72 80,64 120,70 160,78 200,68 240,62 260,64" />
+              </svg>
+              <div class="time-labels">
+                <span>0:00</span>
+                <span>6:00</span>
+                <span>12:00</span>
+                <span>18:00</span>
+                <span>24:00</span>
+              </div>
+            </div>
+            <div class="hpmp-stats">
+              <div class="stat hp">
+                <span class="label">現在HP</span>
+                <span class="value">72 / 100</span>
+              </div>
+              <div class="stat mp">
+                <span class="label">現在MP</span>
+                <span class="value">63 / 100</span>
+              </div>
+              <div class="stat">
+                <span class="label">コンディションメモ</span>
+                <span class="value">午後に少し回復</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="memo-section">
+          <div class="section-title">今日のメモ</div>
+          <textarea class="quick-note" placeholder="軽い振り返りや気づきを入力"></textarea>
+        </div>
+      </aside>
+    </div>
+    <footer>
+      <div class="footer-summary">
+        <span>最終同期: 2025/05/02 07:22 / 次回 15分後</span>
+        <span>今週平均睡眠: 7.1h</span>
+        <span>食事回数: 2.3回/日</span>
+        <span>外出: 3回/週</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,490 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タグ管理ビュー モック</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --sidebar: #eef2ff;
+      --accent: #2563eb;
+      --accent-soft: rgba(37,99,235,0.18);
+      --border: #d6dce8;
+      --text: #1f2933;
+      --muted: #6b7280;
+      --danger: #dc2626;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px 0;
+    }
+    .app-shell {
+      width: min(1280px, 96vw);
+      min-height: 760px;
+      background: var(--surface);
+      border-radius: 26px;
+      box-shadow: 0 26px 54px rgba(15,23,42,0.18);
+      display: grid;
+      grid-template-rows: 88px 1fr;
+      overflow: hidden;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 0 32px;
+      background: linear-gradient(120deg, #1d4ed8, #60a5fa);
+      color: #fff;
+    }
+    .brand {
+      font-size: 24px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .brand span {
+      font-size: 13px;
+      opacity: 0.8;
+      font-weight: 400;
+    }
+    .page-menu {
+      margin-left: auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .menu-trigger {
+      border: none;
+      border-radius: 14px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.24);
+      color: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 10px 20px rgba(15,23,42,0.12);
+    }
+    .menu-trigger .chevron {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+    .menu-panel {
+      background: rgba(255,255,255,0.92);
+      border-radius: 18px;
+      padding: 14px 18px;
+      border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 20px 36px rgba(15,23,42,0.18);
+      display: grid;
+      gap: 10px;
+      min-width: 200px;
+    }
+    .menu-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(15,23,42,0.6);
+      font-weight: 700;
+    }
+    .menu-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      background: rgba(37,99,235,0.12);
+      border-radius: 12px;
+      padding: 8px 12px;
+    }
+    .menu-item.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(37,99,235,0.24);
+    }
+    .menu-hint {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    main {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 28px;
+      padding: 30px 36px 36px;
+      background: var(--bg);
+    }
+    .tag-list-panel {
+      background: rgba(255,255,255,0.86);
+      border-radius: 22px;
+      border: 1px solid rgba(37,99,235,0.18);
+      padding: 24px;
+      display: grid;
+      gap: 20px;
+      align-content: start;
+    }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .search-box {
+      display: grid;
+      gap: 12px;
+    }
+    .search-box input {
+      border: 1px solid rgba(37,99,235,0.22);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+    .filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chip {
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: rgba(37,99,235,0.12);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chip.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .tag-list {
+      display: grid;
+      gap: 10px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .tag-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid rgba(37,99,235,0.14);
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    .tag-item.active {
+      border-color: var(--accent);
+      box-shadow: 0 12px 24px rgba(37,99,235,0.18);
+    }
+    .tag-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+.tag-meta .name {
+      font-weight: 600;
+    }
+    .tag-meta .info {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .tag-count {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .main-panel {
+      display: grid;
+      gap: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 22px;
+      border: 1px solid rgba(37,99,235,0.14);
+      padding: 26px;
+      box-shadow: 0 24px 40px rgba(15,23,42,0.08);
+      display: grid;
+      gap: 20px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .card-header span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .field-row {
+      display: grid;
+      gap: 12px;
+    }
+    .field-row label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .field-row input,
+    .field-row textarea,
+    .field-row select {
+      border: 1px solid rgba(37,99,235,0.22);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+    .field-row textarea {
+      min-height: 120px;
+      resize: none;
+    }
+    .tag-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .tag-actions button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(37,99,235,0.22);
+    }
+    .btn-soft {
+      background: rgba(37,99,235,0.12);
+      color: var(--accent);
+    }
+    .btn-danger {
+      background: rgba(220,38,38,0.14);
+      color: #b91c1c;
+    }
+    .merge-board {
+      display: grid;
+      gap: 16px;
+      background: rgba(37,99,235,0.08);
+      border-radius: 16px;
+      padding: 18px;
+      border: 1px solid rgba(37,99,235,0.18);
+    }
+    .merge-choices {
+      display: grid;
+      gap: 12px;
+    }
+    .timeline-preview {
+      display: grid;
+      gap: 14px;
+    }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(37,99,235,0.08);
+      font-size: 13px;
+    }
+    .timeline-item .time {
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="brand">
+        Lifelog Planner
+        <span>タグの管理・統合で振り返りを整える</span>
+      </div>
+      <div class="page-menu">
+        <button class="menu-trigger">ページメニュー <span class="chevron">▾</span></button>
+        <div class="menu-panel">
+          <span class="menu-title">ビュー切り替え</span>
+          <a class="menu-item" href="#">日次ビュー</a>
+          <a class="menu-item" href="#">分析ビュー</a>
+          <a class="menu-item active" href="#">タグ管理</a>
+          <span class="menu-hint">※ 本実装ではここから画面を切り替えます</span>
+        </div>
+      </div>
+    </header>
+    <main>
+      <aside class="tag-list-panel">
+        <div>
+          <div class="panel-title">タグライブラリ</div>
+          <div class="search-box">
+            <input type="search" placeholder="タグを検索..." />
+            <div class="filter-chips">
+              <span class="chip active">すべて</span>
+              <span class="chip">アクティブ</span>
+              <span class="chip">アーカイブ</span>
+              <span class="chip">統合候補</span>
+            </div>
+          </div>
+        </div>
+        <div class="tag-list">
+          <div class="tag-item active">
+            <span class="tag-meta">集中タイム</span>
+            <span class="tag-count">32件</span>
+          </div>
+          <div class="tag-item">
+            <span class="tag-meta">睡眠衛生</span>
+            <span class="tag-count">24件</span>
+          </div>
+          <div class="tag-item">
+            <span class="tag-meta">ストレスケア</span>
+            <span class="tag-count">15件</span>
+          </div>
+          <div class="tag-item">
+            <span class="tag-meta">外出（友人）</span>
+            <span class="tag-count">12件</span>
+          </div>
+          <div class="tag-item">
+            <span class="tag-meta">新しい趣味</span>
+            <span class="tag-count">6件</span>
+          </div>
+          <div class="tag-item">
+            <span class="tag-meta">燃え尽き注意</span>
+            <span class="tag-count">4件</span>
+          </div>
+        </div>
+      </aside>
+
+      <section class="main-panel">
+        <div class="card">
+          <div class="card-header">
+            <h2>タグ詳細</h2>
+            <span>選択中: 集中タイム</span>
+          </div>
+          <div class="field-row">
+            <label>タグ名</label>
+            <input type="text" value="集中タイム" />
+          </div>
+          <div class="field-row">
+            <label>説明メモ</label>
+            <textarea placeholder="タグの使い方やルールをメモ">意図的に集中した時間帯に付けるタグ。午前を優先。</textarea>
+          </div>
+
+          <div class="field-row">
+            <label>関連カテゴリ</label>
+            <div class="filter-chips">
+              <span class="chip active">ワーク</span>
+              <span class="chip">趣味</span>
+            </div>
+          </div>
+          <div class="tag-actions">
+            <button class="btn-primary">変更を保存</button>
+            <button class="btn-soft">アーカイブ</button>
+            <button class="btn-danger">完全削除</button>
+          </div>
+          <p class="note">削除を選ぶと、統合するか完全に消すか確認ダイアログが表示されます。</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>タグ統合・後継設定</h2>
+            <span>不要なタグをまとめて整理</span>
+          </div>
+          <div class="merge-board">
+            <div class="merge-choices">
+              <div class="field-row">
+                <label>統合元タグ</label>
+                <select>
+                  <option>ストレスケア（旧）</option>
+                  <option>集中タイム（旧表記）</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label>統合先タグ</label>
+                <select>
+                  <option>ストレスケア</option>
+                  <option selected>集中タイム</option>
+                  <option>メンタルケア</option>
+                </select>
+              </div>
+            </div>
+            <p class="note">統合すると、過去の記録は統合先タグに置き換わります。お気に入り設定も引き継がれます。</p>
+            <div class="tag-actions">
+              <button class="btn-primary">統合を実行</button>
+              <button class="btn-soft">プレビュー</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>最近の記録プレビュー</h2>
+            <span>タグ編集後に影響を受けるログ</span>
+          </div>
+          <div class="timeline-preview">
+            <div class="timeline-item">
+              <span class="time">4/28 09:00</span>
+              <div>
+                1時間のディープワークセッション。HP 78 / MP 82。
+              </div>
+            </div>
+            <div class="timeline-item">
+              <span class="time">4/26 13:00</span>
+              <div>
+                午後の集中タイム（カフェ）。MPが回復。
+              </div>
+            </div>
+            <div class="timeline-item">
+              <span class="time">4/23 07:00</span>
+              <div>
+                朝活ジャーナリング。集中タイムタグを再利用。
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
